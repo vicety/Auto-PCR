@@ -5,7 +5,7 @@ import time
 
 # 配置项
 device_serial = "emulator-5554"
-resolution = (1280, 720) # 分辨率
+resolution = (1920, 1080) # 分辨率
 default_tap_sleep = 2.0 # 默认点击后等待时间
 default_dungeon_battle_time = 25 # 地下城战斗
 default_battle_load_time = 12 # 默认进入战斗加载时间
@@ -89,8 +89,9 @@ def exec(cmd:str, sleep:float):
     time.sleep(sleep)
 
 # 坐标计算参考了 https://blog.csdn.net/liu_zhen_wei/article/details/12559277
-def press(location:Loc, sleep:float=default_tap_sleep):
-    print("点击【{}】".format(location[2]))
+def press(location:Loc, sleep:float=default_tap_sleep, log=True):
+    if log:    
+        print("点击【{}】".format(location[2]))
     exec("input tap {} {}".format(int(int(location[0], 16) * rateW), int(int(location[1], 16) * rateH)), sleep=sleep)
 
 def back():
@@ -101,7 +102,7 @@ def context(loc:Callable[[Loc], None]):
     def decorator(f): # f:执行战斗函数
         def wrapper():
             print("进入【{}】".format(loc[2]))
-            press(loc)
+            press(loc, log=False)
             f()
             print("退出【{}】".format(loc[2]))
             back()
