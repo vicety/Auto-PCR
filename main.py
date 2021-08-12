@@ -22,9 +22,9 @@ def to_int_tuple(hex_tuple:Loc):
 
 PRESS_BUTTON_BACK = "input keyevent 4"
 
-# 坐标使用getevent指令获取
+# 十六进制坐标使用getevent指令获取
 # 首级菜单
-LOC_ADVANTURE = ("0000408e", "00007808", "冒险") # 来自getevent
+LOC_ADVANTURE = ("0000408e", "00007808", "冒险")
 LOC_GUILD_HOME = ("000050c5", "000076e8", "公会之家")
 LOC_GACHA = ("00006470", "00007861", "扭蛋")
 LOC_GUILD = ("00005c04", "00006806", "行会")
