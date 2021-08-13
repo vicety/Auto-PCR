@@ -7,7 +7,7 @@ import time
 device_serial = "emulator-5554"
 resolution = (1920, 1080) # 分辨率
 default_tap_sleep = 2.0 # 默认点击后等待时间
-default_dungeon_battle_time = 25 # 地下城战斗
+default_dungeon_battle_time = 35 # 地下城战斗
 default_battle_load_time = 12 # 默认进入战斗加载时间
 
 # 32767来自adb shell getevent -p，参考https://raw.githubusercontent.com/vicety/Images/master/imagesScreenshot-2021-08-12-213010.png
@@ -94,18 +94,19 @@ def press(location:Loc, sleep:float=default_tap_sleep, log=True):
         print("点击【{}】".format(location[2]))
     exec("input tap {} {}".format(int(int(location[0], 16) * rateW), int(int(location[1], 16) * rateH)), sleep=sleep)
 
-def back():
-    exec(PRESS_BUTTON_BACK, sleep=1)
+def back(sleep:float=1):
+    print("点击【返回键】")
+    exec(PRESS_BUTTON_BACK, sleep=sleep)
 
 # 进入界面，执行操作，退出
-def context(loc:Callable[[Loc], None]):
+def context(loc:Callable[[Loc], None], enterSleep:float=4, leaveSleep:float=4):
     def decorator(f): # f:执行战斗函数
         def wrapper():
             print("进入【{}】".format(loc[2]))
-            press(loc, log=False)
+            press(loc, log=False, sleep=enterSleep)
             f()
             print("退出【{}】".format(loc[2]))
-            back()
+            back(sleep=leaveSleep)
         return wrapper
     return decorator
 
@@ -131,7 +132,7 @@ def exit():
     exec("am force-stop com.bilibili.priconne", sleep=2)
 
 # 扫荡，之后退出关卡界面
-def repeat_battle(battle_loc:Loc, n:int):
+def repeat_battle(battle_loc:Loc, n:int, goBack=True):
     press(battle_loc)
 
     for i in range(1, n):
@@ -144,21 +145,24 @@ def repeat_battle(battle_loc:Loc, n:int):
 
     press(LOC_MEANINGLESS)
     press(LOC_MEANINGLESS)
-    back()
+
+    # 应对探索本执行完成后会自动执行一次后退
+    if goBack:
+        back()
 
 # 探索经验
 @context(LOC_ADVANTURE)
 @context(LOC_EXPLORE)
 @context(LOC_EXPLORE_EXP)
 def explore_exp():
-    pass
+    repeat_battle(LOC_EXPLORE_FIRST_QUEST, 2, goBack=False)
 
 # 探索mana
 @context(LOC_ADVANTURE)
 @context(LOC_EXPLORE)
 @context(LOC_EXPLORE_MANA)
 def explore_mana():
-    repeat_battle(LOC_EXPLORE_FIRST_QUEST, 2)
+    repeat_battle(LOC_EXPLORE_FIRST_QUEST, 2, goBack=False)
 
 # 心碎1
 @context(LOC_ADVANTURE)
@@ -173,7 +177,7 @@ def heart2():
     repeat_battle(LOC_HEART2, 5)
 
 # 公会之家体力收取
-@context(LOC_GUILD_HOME)
+@context(LOC_GUILD_HOME, leaveSleep=8)
 def guild_collect_all():
     press(LOC_GUILD_COLLECT_ALL)
     press(LOC_MEANINGLESS)
@@ -200,7 +204,7 @@ def guild_like():
 def dungeon():
     # 选择地下城
     press(LOC_LATEST_DUNGEON)
-    press(LOC_CONFIRM, sleep=5)
+    press(LOC_CONFIRM, sleep=12)
 
     press(LOC_DUNGEON_EX2_FIRST_ENEMY)
     press(LOC_DO_MANUAL_BATTLE)
@@ -208,13 +212,10 @@ def dungeon():
     press(LOC_FIRST_TEAM)
     press(LOC_DO_MANUAL_BATTLE, sleep=default_battle_load_time) # 战斗开始
 
-    # press(LOC_AUTO)
-    # press(LOC_SPEED_UP)
-
     time.sleep(default_dungeon_battle_time)
     
     press(LOC_BATTLE_RESULT_CHECK, sleep=8)
-    press(LOC_MEANINGLESS) # 确认地下城宝箱
+    press(LOC_MEANINGLESS, sleep=6) # 确认地下城宝箱，等待角色走动
 
     # 第2-4名敌人
     enemies = [LOC_DUNGEON_EX2_SECOND_ENEMY, LOC_DUNGEON_EX2_THIRD_ENEMY, LOC_DUNGEON_EX2_FOURTH_ENEMY]
@@ -224,7 +225,7 @@ def dungeon():
         press(LOC_DO_MANUAL_BATTLE, sleep=default_battle_load_time)
         time.sleep(default_dungeon_battle_time)
         press(LOC_BATTLE_RESULT_CHECK, sleep=8)
-        press(LOC_MEANINGLESS, sleep=5) # 确认地下城宝箱，等待角色走动
+        press(LOC_MEANINGLESS, sleep=6) # 确认地下城宝箱，等待角色走动
 
     press(LOC_DUNGEON_LEAVE)
     press(LOC_CONFIRM, sleep=5) # 确认离开地下城
@@ -244,10 +245,13 @@ def collect_gift():
 
 # 函数间无依赖，可任意修改顺序
 collect_daily_task_reward()
+guild_collect_all()
 free_gacha()
+guild_like()
 explore_exp()
 explore_mana()
-guild_collect_all()
+heart1()
+heart2()
+dungeon()
 collect_daily_task_reward()
 collect_gift()
-
