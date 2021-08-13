@@ -110,6 +110,16 @@ def context(loc:Callable[[Loc], None], enterSleep:float=4, leaveSleep:float=4):
         return wrapper
     return decorator
 
+def component(name:str):
+    def decorator(f):
+        def wrapper():
+            print("=== 开始执行【{}】 ===".format(name))
+            f()
+            print("=== 【{}】执行完成 ===\n".format(name))
+        return wrapper
+    return decorator
+
+
 def start():
     # 从 dumpsys package com.bilibili.priconne 获得
     # 游戏启动
@@ -150,39 +160,39 @@ def repeat_battle(battle_loc:Loc, n:int, goBack=True):
     if goBack:
         back()
 
-# 探索经验
+@component("探索经验")
 @context(LOC_ADVANTURE)
 @context(LOC_EXPLORE)
-@context(LOC_EXPLORE_EXP)
 def explore_exp():
+    press(LOC_EXPLORE_EXP)
     repeat_battle(LOC_EXPLORE_FIRST_QUEST, 2, goBack=False)
 
-# 探索mana
+@component("探索mana")
 @context(LOC_ADVANTURE)
 @context(LOC_EXPLORE)
-@context(LOC_EXPLORE_MANA)
 def explore_mana():
+    press(LOC_EXPLORE_MANA)
     repeat_battle(LOC_EXPLORE_FIRST_QUEST, 2, goBack=False)
 
-# 心碎1
+@component("心碎1")
 @context(LOC_ADVANTURE)
 @context(LOC_HEART)
 def heart1():
     repeat_battle(LOC_HEART1, 5)
 
-# 心碎2
+@component("心碎2")
 @context(LOC_ADVANTURE)
 @context(LOC_HEART)
 def heart2():
     repeat_battle(LOC_HEART2, 5)
 
-# 公会之家体力收取
+@component("公会之家体力收取")
 @context(LOC_GUILD_HOME, leaveSleep=8)
 def guild_collect_all():
     press(LOC_GUILD_COLLECT_ALL)
     press(LOC_MEANINGLESS)
 
-# 免费十连
+@component("免费十连")
 @context(LOC_GACHA)
 def free_gacha():
     press(LOC_GACHA_FREE)
@@ -191,14 +201,14 @@ def free_gacha():
     time.sleep(3)
     back()
 
-# 行会点赞
+@component("行会点赞")
 @context(LOC_GUILD)
 @context(LOC_GUILD_MEMBER)
 def guild_like():
     press(LOC_GUILD_LIKE)
     back()
 
-# 地下城 毒瘴的暗棱 无boss
+@component("地下城 毒瘴的暗棱 无boss")
 @context(LOC_ADVANTURE)
 @context(LOC_DUNGEON)
 def dungeon():
@@ -230,13 +240,13 @@ def dungeon():
     press(LOC_DUNGEON_LEAVE)
     press(LOC_CONFIRM, sleep=5) # 确认离开地下城
 
-# 收取每日任务奖励
+@component("收取每日任务奖励")
 @context(LOC_TASK)
 def collect_daily_task_reward():
     press(LOC_TASK_COLLECT_ALL)
     press(LOC_MEANINGLESS)
 
-# 收取所有礼物
+@component("收取所有礼物")
 @context(LOC_GIFT)
 def collect_gift():
     press(LOC_GIFT_COLLECT_ALL)
@@ -244,11 +254,11 @@ def collect_gift():
     press(LOC_MEANINGLESS)
 
 # 函数间无依赖，可任意修改顺序
-collect_daily_task_reward()
-guild_collect_all()
-free_gacha()
-guild_like()
-explore_exp()
+# collect_daily_task_reward()
+# guild_collect_all()
+# free_gacha()
+# guild_like()
+# explore_exp()
 explore_mana()
 heart1()
 heart2()
